@@ -256,7 +256,7 @@ async function groqReply(text) {
     method: "POST",
     headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
     body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-120b",
       messages: [
         { role: "system", content: lang === "bn"
           ? "তুমি Nova AI — একজন বন্ধুসুলভ পার্সোনাল AI সহকারী। ব্যবহারকারী যে ভাষায় লিখবে (বাংলা বা ইংরেজি), সেই ভাষায় উত্তর দাও। সংক্ষিপ্ত ও সহজ ভাষায় উত্তর দাও।"
