@@ -69,10 +69,13 @@ export default {
       }
       await sendMessage(env, chatId, reply);
     } catch (e) {
+      // Include the error detail so a failed Groq call can be diagnosed
+      // from the bot's reply (e.g. "Groq 401" = bad key, "Groq 400" =
+      // bad model/request, "Groq 429" = rate limit).
       await sendMessage(
         env,
         chatId,
-        "⚠️ দুঃখিত, এখন উত্তর দিতে পারছি না — একটু পরে আবার চেষ্টা করো।"
+        "⚠️ দুঃখিত, এখন উত্তর দিতে পারছি না — একটু পরে আবার চেষ্টা করো। (" + e.message + ")"
       );
     }
     return new Response("ok", { status: 200 });
