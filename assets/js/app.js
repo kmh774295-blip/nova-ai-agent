@@ -1,10 +1,11 @@
 /* ============================================================
-   NOVA AI — Dashboard App (Phase 1)
-   Static demo · No backend · No secrets · No tracking
+   NOVA AI — Dashboard App (Phase 1–3)
+   Static · No backend · No secrets · No tracking
    - Language: Bengali / English (localStorage)
-   - Agent toggles + chat demo (keyword replies)
+   - Agent toggles + chat (real Groq AI when a key is saved,
+     keyword demo replies as fallback)
    - VPN tables rendered from assets/js/vpn-servers.js
-   - API key (Phase 3) is stored ONLY in this browser
+   - API key is stored ONLY in this browser (localStorage)
    ============================================================ */
 "use strict";
 
@@ -24,7 +25,9 @@ const I18N = {
     "chat.title": "💬 Nova AI Chat", "chat.demo": "DEMO MODE",
     "chat.ph": "এখানে মেসেজ লিখো... (যেমন: ভিপিএন, সময়, এজেন্ট)",
     "chat.send": "পাঠাও",
-    "chat.hint": "এটি এখন ডেমো চ্যাট — আসল AI সংযোগ আসছে Phase 3-এ। তোমার API Key শুধু এই ব্রাউজারেই থাকবে, কোথাও পাঠানো হবে না।",
+    "chat.hint": "Key সংরক্ষিত থাকলে আসল AI উত্তর দেবে — Key শুধু এই ব্রাউজারেই থাকে, কোথাও পাঠানো হয় না। Key না থাকলে ডেমো উত্তর আসবে।",
+    "chat.live": "AI LIVE",
+    "chat.err": "⚠️ AI-এর সাথে সংযোগ হয়নি — Key ঠিক আছে কি না Settings-এ দেখো, অথবা আবার চেষ্টা করো।",
     "chat.hello": "আসসালামু আলাইকুম! আমি Nova AI 👋\nআমি কী করতে পারি:\n• এজেন্টদের অবস্থা জানতে পারো\n• VPN সার্ভার দেখতে পারো\n• সময় জানতে পারো\nযেকোনো প্রশ্ন লিখো!",
     "vpn.title": "🛡️ Nova VPN Agent",
     "vpn.sub": "যাচাই করা পাবলিক ফ্রি সার্ভার — কোনো ভুয়া সার্ভার নেই। কানেক্ট করার আগে লাইভ লিস্ট দেখে নাও।",
@@ -72,7 +75,9 @@ const I18N = {
     "chat.title": "💬 Nova AI Chat", "chat.demo": "DEMO MODE",
     "chat.ph": "Type a message... (try: vpn, time, agents)",
     "chat.send": "Send",
-    "chat.hint": "This is a demo chat — real AI connection arrives in Phase 3. Your API key stays only in this browser, it is never sent anywhere.",
+    "chat.hint": "With a saved key you get real AI answers — the key stays only in this browser, it is never sent anywhere. Without a key, demo replies.",
+    "chat.live": "AI LIVE",
+    "chat.err": "⚠️ Couldn't reach the AI — check the key in Settings, or try again.",
     "chat.hello": "Hello! I am Nova AI 👋\nI can help you:\n• Check agent status\n• Show VPN servers\n• Tell the time\nAsk me anything!",
     "vpn.title": "🛡️ Nova VPN Agent",
     "vpn.sub": "Verified public free servers — no fake servers. Check the live list before connecting.",
@@ -141,6 +146,7 @@ function applyLang() {
   renderAgents();
   renderVpn();
   renderKeyState();
+  updateChatBadge();
   const hello = $("#messages .msg.bot");
   if (hello && !hello.dataset.custom) hello.textContent = t("chat.hello");
 }
@@ -229,12 +235,43 @@ function sendMessage() {
   input.value = "";
   const typing = addMsg("Nova AI " + (lang === "bn" ? "লিখছে..." : "is typing..."), "bot");
   typing.classList.add("typing");
-  setTimeout(() => {
-    typing.textContent = demoReply(text);
+  const finish = (reply) => {
+    typing.textContent = reply;
     typing.classList.remove("typing");
     typing.dataset.custom = "1";
     $("#messages").scrollTop = $("#messages").scrollHeight;
-  }, 500);
+  };
+  const key = store.get("apiKey", "");
+  if (!key) {
+    setTimeout(() => finish(demoReply(text)), 500);
+    return;
+  }
+  groqReply(text).then(finish).catch(() => finish(t("chat.err")));
+}
+/* Real AI via Groq (free tier) — key read from this browser only,
+   never stored in the repo. Falls back to demo replies when offline. */
+async function groqReply(text) {
+  const key = store.get("apiKey", "");
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        { role: "system", content: lang === "bn"
+          ? "তুমি Nova AI — একজন বন্ধুসুলভ পার্সোনাল AI সহকারী। ব্যবহারকারী যে ভাষায় লিখবে (বাংলা বা ইংরেজি), সেই ভাষায় উত্তর দাও। সংক্ষিপ্ত ও সহজ ভাষায় উত্তর দাও।"
+          : "You are Nova AI — a friendly personal AI assistant. Answer in the language the user writes in (Bengali or English). Keep answers short and simple." },
+        { role: "user", content: text }
+      ],
+      temperature: 0.7,
+      max_tokens: 800
+    })
+  });
+  if (!res.ok) throw new Error("Groq " + res.status);
+  const data = await res.json();
+  const out = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+  if (!out) throw new Error("empty reply");
+  return out.trim();
 }
 
 /* ---------------- VPN ---------------- */
@@ -286,6 +323,13 @@ function renderKeyState() {
   const k = store.get("apiKey", "");
   el.textContent = k ? "● " + t("set.key.saved") + " (" + k.length + " chars)" : t("set.key.none");
 }
+function updateChatBadge() {
+  const badge = $(".demo-badge");
+  if (!badge) return;
+  const live = !!store.get("apiKey", "");
+  badge.textContent = live ? t("chat.live") : t("chat.demo");
+  badge.classList.toggle("live", live);
+}
 function initSettings() {
   $$(".swatch").forEach((s) => {
     s.addEventListener("click", () => { accent = s.dataset.accent; store.set("accent", accent); applyAccent(); });
@@ -296,6 +340,7 @@ function initSettings() {
     const v = inp.value.trim();
     if (v) { store.set("apiKey", v); inp.value = ""; }
     renderKeyState();
+    updateChatBadge();
   });
   const resetBtn = $("#reset-all");
   if (resetBtn) resetBtn.addEventListener("click", () => {
