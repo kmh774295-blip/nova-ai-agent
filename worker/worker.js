@@ -4,8 +4,11 @@
 //   TELEGRAM_BOT_TOKEN — from @BotFather
 //   GROQ_API_KEY       — Groq console (free tier); same key as the
 //                        dashboard chat, or a second key named "Nova-Bot"
+//   REPLICATE_API_TOKEN — replicate.com (free "Try for Free" runs, no card;
+//                        needed only for /video; video model wan-2.2-t2v-fast)
 const TELEGRAM_API = "https://api.telegram.org";
 const GROQ_API = "https://api.groq.com/openai/v1/chat/completions";
+const REPLICATE_API = "https://api.replicate.com/v1";
 
 async function sendMessage(env, chatId, text) {
   const res = await fetch(`${TELEGRAM_API}/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
@@ -47,6 +50,63 @@ async function sendImage(env, chatId, prompt) {
   await sendPhoto(env, chatId, await img.blob(), "🖼️ " + prompt);
 }
 
+async function sendVideo(env, chatId, videoUrl, caption) {
+  const res = await fetch(`${TELEGRAM_API}/bot${env.TELEGRAM_BOT_TOKEN}/sendVideo`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chat_id: chatId, video: videoUrl, caption: String(caption).slice(0, 1000) }),
+  });
+  return res.json();
+}
+
+async function makeVideo(env, chatId, rawText) {
+  // Runs in the background (ctx.waitUntil): video takes minutes.
+  try {
+    let prompt = rawText;
+    if (/[\u0980-\u09FF]/.test(rawText)) {
+      prompt = await englishPrompt(env, rawText);
+      if (!prompt) { await sendMessage(env, chatId, "ভিডিওর বর্ণনাটা ইংরেজিতে লিখো — যেমন: /video a mosque at sunset"); return; }
+    }
+    const create = await fetch(`${REPLICATE_API}/models/wan-video/wan-2.2-t2v-fast/predictions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${env.REPLICATE_API_TOKEN}`,
+        Prefer: "wait",
+      },
+      body: JSON.stringify({ input: { prompt, resolution: "480p", duration: 5 } }),
+    });
+    if (!create.ok) {
+      if (create.status === 402) throw new Error("billing");
+      throw new Error("Replicate " + create.status);
+    }
+    let pred = await create.json();
+    for (let i = 0; i < 36 && (pred.status === "starting" || pred.status === "processing"); i++) {
+      await new Promise(r => setTimeout(r, 10000));
+      const res = await fetch(`${REPLICATE_API}/predictions/${pred.id}`, {
+        headers: { Authorization: `Bearer ${env.REPLICATE_API_TOKEN}` },
+      });
+      if (!res.ok) throw new Error("Replicate " + res.status);
+      pred = await res.json();
+    }
+    if (pred.status === "succeeded") {
+      const url = Array.isArray(pred.output) ? pred.output[0] : pred.output;
+      if (!url) throw new Error("empty output");
+      await sendVideo(env, chatId, url, "🎬 " + prompt);
+    } else if (pred.status === "failed" || pred.status === "canceled") {
+      throw new Error("failed: " + (pred.error || pred.status));
+    } else {
+      await sendMessage(env, chatId, "⏳ ভিডিও এখনো বানানো হচ্ছে — হয়ে গেলে পাঠাবো, একটু অপেক্ষা করো।");
+    }
+  } catch (e) {
+    if (String(e.message) === "billing") {
+      await sendMessage(env, chatId, "⚠️ Replicate-এর ফ্রি ভিডিও শেষ হয়ে গেছে — চালিয়ে যেতে Replicate-এ billing বসাতে হবে।");
+    } else {
+      await sendMessage(env, chatId, "⚠️ ভিডিও বানানো যায়নি — একটু পরে আবার চেষ্টা করো। (" + e.message + ")");
+    }
+  }
+}
+
 async function groqReply(env, text) {
   const res = await fetch(GROQ_API, {
     method: "POST",
@@ -76,7 +136,7 @@ async function groqReply(env, text) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     if (request.method !== "POST") {
       return new Response("Nova AI bot is running", { status: 200 });
     }
@@ -94,7 +154,20 @@ export default {
       let reply;
       if (text === "/start") {
         reply =
-          "আসসালামু আলাইকুম! আমি Nova AI 👋\nআমাকে যেকোনো প্রশ্ন করো — বাংলা বা ইংরেজিতে।\nছবি বানাতে লিখো: /image <বর্ণনা> — যেমন: /image a mosque at sunset";
+          "আসসালামু আলাইকুম! আমি Nova AI 👋\nআমাকে যেকোনো প্রশ্ন করো — বাংলা বা ইংরেজিতে।\nছবি বানাতে লিখো: /image <বর্ণনা> — যেমন: /image a mosque at sunset\nভিডিও বানাতে লিখো: /video <বর্ণনা> — যেমন: /video a mosque at sunset (কয়েক মিনিট লাগে)";
+      } else if (/^(?:\/video)\s+(.+)/i.test(text) || (/(ভিডিও)/.test(text) && /(বানাও|তৈরি|দাও|চাই|বানিয়ে)/.test(text)) || (/\bvideo\b/i.test(text) && /(generate|make|create)/i.test(text))) {
+        // Video generation (Replicate, Try for Free runs, no card).
+        // Runs in the background — the webhook answers at once.
+        if (!env.REPLICATE_API_TOKEN) {
+          await sendMessage(env, chatId, "🎬 ভিডিও বানাতে Replicate টোকেন লাগবে — replicate.com থেকে টোকেন নিয়ে Worker-এর Variables-এ REPLICATE_API_TOKEN নামে বসাও, তারপর Deploy চাপো।");
+          return new Response("ok", { status: 200 });
+        }
+        const rawText = /^(?:\/video)\s+(.+)/i.test(text)
+          ? text.replace(/^(?:\/video)\s+/i, "").trim()
+          : text;
+        await sendMessage(env, chatId, "🎬 ভিডিও বানাচ্ছি — কয়েক মিনিট লাগতে পারে, হয়ে গেলে এখানেই পাঠাবো।");
+        ctx.waitUntil(makeVideo(env, chatId, rawText));
+        return new Response("ok", { status: 200 });
       } else if (/^(?:\/image)\s+(.+)/i.test(text)) {
         // /image <prompt>. Bengali prompts are turned into an English
         // prompt via Groq first — the image model cannot read Bengali.
