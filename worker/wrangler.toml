@@ -1,0 +1,7 @@
+name = "nova-ai-bot"
+main = "worker.js"
+compatibility_date = "2026-11-08"
+
+# Secrets are NOT stored here. Set them in the Cloudflare dashboard:
+# Worker → Settings → Variables → Add variable (mark as secret):
+#   TELEGRAM_BOT_TOKEN, GROQ_API_KEY
