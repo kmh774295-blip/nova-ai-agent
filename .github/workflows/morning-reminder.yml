@@ -1,0 +1,32 @@
+# Nova AI — Phase 5 Automation: daily morning reminder
+# Runs free on GitHub Actions. Sends one Telegram message every morning
+# through the Nova AI bot. No secrets in this file: the bot token and the
+# chat id live in the repo's Settings -> Secrets and variables -> Actions
+# as TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID.
+name: Morning Reminder
+
+on:
+  schedule:
+    - cron: "0 0 * * *"  # 06:00 Dhaka (UTC+6), every day
+  workflow_dispatch:  # manual run from the Actions tab, for testing
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send morning reminder via Nova AI bot
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          TEXT=$(cat <<'EOF'
+          আসসালামু আলাইকুম! শুভ সকাল ☀️
+          আজকের দিনটি বরকতময় হোক।
+          সকালের জিকির: সুবহানাল্লাহি ওয়া বিহামদিহি — ১০০ বার।
+          রাসূলুল্লাহ ﷺ বলেছেন, যে ব্যক্তি দিনে ১০০ বার এটি পড়বে, তার গুনাহ মাফ করে দেওয়া হবে, যদিও তা সমুদ্রের ফেনার মতো হয়। (সহীহ বুখারী ৬৪০৫)
+          — Nova AI 🤖
+          EOF
+          )
+          PAYLOAD=$(jq -n --arg chat_id "$CHAT_ID" --arg text "$TEXT" '{chat_id: $chat_id, text: $text}')
+          curl -sS -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+            -H "Content-Type: application/json" -d "$PAYLOAD"
