@@ -1,0 +1,173 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nova AI Agent</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#080d1b;color:#fff;
+ font-family:Arial,sans-serif;padding:20px;
+}
+header{
+ display:flex;justify-content:space-between;
+ align-items:center;flex-wrap:wrap;gap:12px;
+}
+.logo{font-size:27px;font-weight:bold;color:#a78bfa}
+.tag{color:#aaa;font-size:13px}
+h2{margin-top:30px}
+.hero{
+ background:linear-gradient(135deg,#25165a,#102e55);
+ padding:25px;border-radius:18px;margin-top:25px;
+}
+.hero h1{font-size:27px;margin:0 0 10px}
+.hero p{color:#d0d4e8;line-height:1.6}
+.grid{
+ display:grid;grid-template-columns:repeat(2,1fr);
+ gap:13px;margin-top:18px;
+}
+.card{
+ background:#141d30;border:1px solid #293752;
+ padding:17px;border-radius:15px;
+}
+.card .emoji{font-size:28px}
+.card h3{margin:12px 0 7px;font-size:16px}
+.card p{color:#aab5ca;font-size:12px;line-height:1.5}
+button{
+ border:0;border-radius:9px;padding:11px 14px;
+ background:#7957ed;color:white;font-weight:bold;
+ cursor:pointer;
+}
+.card button{width:100%;margin-top:8px}
+.status{font-size:12px;color:#aaa}
+.chat{
+ margin-top:25px;background:#141d30;
+ padding:17px;border-radius:15px;
+}
+input{
+ width:100%;padding:14px;border-radius:9px;
+ border:1px solid #39445c;background:#0b1324;
+ color:white;margin:10px 0;
+}
+#messages{min-height:55px;color:#d5d8e6;line-height:1.7}
+footer{text-align:center;color:#77839a;margin:30px 0;font-size:12px}
+@media(min-width:700px){
+ .grid{grid-template-columns:repeat(3,1fr)}
+ body{max-width:950px;margin:auto}
+}
+</style>
+</head>
+<body>
+
+<header>
+ <div>
+  <div class="logo">✦ NOVA AI</div>
+  <div class="tag">ALL IN ONE AI AGENT SYSTEM</div>
+ </div>
+ <div>🟢 Dashboard</div>
+</header>
+
+<section class="hero">
+ <h1>Welcome to Nova AI 🚀</h1>
+ <p>তোমার নিজের AI Agent System-এ স্বাগতম।
+ এখানে ছয়টি এজেন্ট এক জায়গা থেকে পরিচালনা করতে পারবে।</p>
+ <button onclick="alert('Nova AI Dashboard Ready!')">
+  Explore Dashboard
+ </button>
+</section>
+
+<h2>🤖 My AI Agents</h2>
+
+<div class="grid" id="agents">
+
+<div class="card">
+ <div class="emoji">🧠</div>
+ <h3>Personal Agent</h3>
+ <p>তোমার ব্যক্তিগত AI সহকারী।</p>
+ <div class="status">Status: <span>Inactive</span></div>
+ <button onclick="toggle(this)">Activate</button>
+</div>
+
+<div class="card">
+ <div class="emoji">💬</div>
+ <h3>Telegram Agent</h3>
+ <p>Telegram Bot পরিচালনা।</p>
+ <div class="status">Status: <span>Inactive</span></div>
+ <button onclick="toggle(this)">Activate</button>
+</div>
+
+<div class="card">
+ <div class="emoji">🌐</div>
+ <h3>Website Agent</h3>
+ <p>Website Assistant পরিচালনা।</p>
+ <div class="status">Status: <span>Inactive</span></div>
+ <button onclick="toggle(this)">Activate</button>
+</div>
+
+<div class="card">
+ <div class="emoji">📱</div>
+ <h3>Android Agent</h3>
+ <p>Android ব্যবহারে সাহায্য করবে।</p>
+ <div class="status">Status: <span>Inactive</span></div>
+ <button onclick="toggle(this)">Activate</button>
+</div>
+
+<div class="card">
+ <div class="emoji">⚙️</div>
+ <h3>Automation Agent</h3>
+ <p>স্বয়ংক্রিয় কাজ পরিচালনা।</p>
+ <div class="status">Status: <span>Inactive</span></div>
+ <button onclick="toggle(this)">Activate</button>
+</div>
+
+<div class="card">
+ <div class="emoji">🛡️</div>
+ <h3>Nova VPN Agent</h3>
+ <p>VPN সার্ভার পরিচালনা।</p>
+ <div class="status">Status: <span>Inactive</span></div>
+ <button onclick="toggle(this)">Activate</button>
+</div>
+
+</div>
+
+<section class="chat">
+ <h2>💬 Nova AI Chat</h2>
+ <div id="messages">Nova AI: স্বাগতম! তোমার কী সাহায্য প্রয়োজন?</div>
+ <input id="question" placeholder="এখানে মেসেজ লিখো...">
+ <button onclick="sendMessage()">Send Message</button>
+</section>
+
+<footer>
+Nova AI Agent System © 2026
+<br>Built with ❤️
+</footer>
+
+<script>
+function toggle(btn){
+ const status=btn.parentElement.querySelector('.status span');
+ const active=btn.innerText==='Activate';
+ status.innerText=active?'Demo Active':'Inactive';
+ btn.innerText=active?'Deactivate':'Activate';
+}
+
+function sendMessage(){
+ const q=document.getElementById('question');
+ const m=document.getElementById('messages');
+ if(!q.value.trim())return;
+ m.innerHTML='You: '+escapeHTML(q.value)+
+ '<br>Nova AI: এটি এখন Demo Dashboard। AI সংযোগ পরবর্তী ধাপে যুক্ত হবে।';
+ q.value='';
+}
+
+function escapeHTML(s){
+ return s.replace(/[&<>"']/g,c=>({
+ '&':'&amp;','<':'&lt;','>':'&gt;',
+ '"':'&quot;',"'":'&#39;'
+ }[c]));
+}
+</script>
+
+</body>
+</html>
