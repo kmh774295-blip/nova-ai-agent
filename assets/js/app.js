@@ -56,7 +56,7 @@ const I18N = {
     "agent.personal": "পার্সোনাল এজেন্ট", "agent.personal.d": "বাংলা ও ইংরেজিতে কথা বলবে — প্রশ্নের উত্তর ও ব্যক্তিগত সহকারী।",
     "agent.telegram": "টেলিগ্রাম এজেন্ট", "agent.telegram.d": "Telegram Bot তৈরি ও পরিচালনা — স্বয়ংক্রিয় উত্তর ও AI চ্যাট সাপোর্ট।",
     "agent.website": "ওয়েবসাইট এজেন্ট", "agent.website.d": "ওয়েবসাইটের AI Chatbot — ভিজিটর সাপোর্ট ও FAQ উত্তর।",
-    "agent.android": "অ্যান্ড্রয়েড এজেন্ট", "agent.android.d": "Android ব্যবহারে সহায়তা — অনুমোদিত কাজের অটোমেশন ও মোবাইল নিয়ন্ত্রণ।",
+    "agent.android": "অ্যান্ড্রয়েড এজেন্ট", "agent.android.d": "ফোনে অ্যাপের মতো ইনস্টল করো — হোম স্ক্রিন থেকে চালাও, ভয়েসে লিখো, এক ট্যাপে বট খুলো।",
     "agent.automation": "অটোমেশন এজেন্ট", "agent.automation.d": "Scheduled Task, Workflow Automation, Notification ও Reminder।",
     "agent.vpn": "Nova VPN এজেন্ট", "agent.vpn.d": "VPN ড্যাশবোর্ড — WireGuard কনফিগ ও ফ্রি VPN সার্ভার পরিচালনা।",
     "guide.1": "<b>Proton অ্যাপ</b> ইনস্টল করো — Settings → Protocol → <b>Stealth</b> বেছে নাও।",
@@ -68,7 +68,27 @@ const I18N = {
     "auto.th.task": "কাজ", "auto.th.when": "কখন", "auto.th.via": "মাধ্যম", "auto.th.status": "অবস্থা",
     "auto.task1": "🌅 সকালের রিমাইন্ডার (সকালের জিকির)",
     "auto.task1.when": "প্রতিদিন সকাল ৬:০০ (ঢাকা)",
-    "auto.note": "টোকেন ও চ্যাট ID GitHub Secrets-এ থাকে — Repository-তে কখনো রাখা হয় না। Actions ট্যাব থেকে যেকোনো সময় হাতে চালিয়ে পরীক্ষা করা যায়।"
+    "auto.note": "টোকেন ও চ্যাট ID GitHub Secrets-এ থাকে — Repository-তে কখনো রাখা হয় না। Actions ট্যাব থেকে যেকোনো সময় হাতে চালিয়ে পরীক্ষা করা যায়।",
+    "android.title": "📱 Android Agent",
+    "android.sub": "ফোনে অ্যাপের মতো চালাও — হোম স্ক্রিনে ইনস্টল, ভয়েসে লিখো, এক ট্যাপে বট খুলো।",
+    "android.install.title": "অ্যাপ হিসেবে ইনস্টল করো",
+    "android.install.sub": "হোম স্ক্রিন থেকে এক ট্যাপে Nova খুলবে — ড্যাশবোর্ড অফলাইনেও দেখা যাবে (AI চ্যাটের জন্য ইন্টারনেট লাগবে)।",
+    "android.install.btn": "ইনস্টল করো",
+    "android.install.cta": "Nova AI অ্যাপ হিসেবে ইনস্টল করো",
+    "android.installed": "✅ অ্যাপ ইনস্টল করা আছে — হোম স্ক্রিনের Nova আইকন থেকে খুলো।",
+    "android.notinstalled": "এখনো ইনস্টল করা হয়নি — উপরের বাটন চাপো, অথবা নিচের হাতের ধাপগুলো দেখো।",
+    "android.manual": "হাতে ইনস্টল করার ধাপ",
+    "android.step1": "Chrome-এ Nova সাইট খুলো।",
+    "android.step2": "উপরে ডানদিকের ⋮ মেনু চাপো → <b>Install app</b> / <b>Add to Home screen</b> বেছে নাও।",
+    "android.step3": "হোম স্ক্রিনে Nova আইকন আসবে — সেখান থেকে এক ট্যাপে খুলবে।",
+    "android.note": "এটি Play Store অ্যাপ নয় — Chrome থেকে ইনস্টল করা ওয়েব অ্যাপ, সম্পূর্ণ ফ্রি, কোনো পারমিশন লাগে না।",
+    "android.open.bot": "💬 Telegram বট খুলো",
+    "android.open.chat": "💬 AI চ্যাট খুলো",
+    "android.share": "🔗 Nova শেয়ার করো",
+    "android.shared": "✅ শেয়ার করা হয়েছে",
+    "android.share.copied": "✅ লিংক কপি হয়েছে — পাঠিয়ে দাও",
+    "android.voice.listening": "🎙️ শুনছি... বলো",
+    "android.voice.unsupported": "এই ব্রাউজারে ভয়েস ইনপুট চলে না"
   },
   en: {
     "nav.dashboard": "Dashboard", "nav.agents": "Agents", "nav.chat": "Chat",
@@ -112,7 +132,7 @@ const I18N = {
     "agent.personal": "Personal Agent", "agent.personal.d": "Talks in Bengali & English — answers questions, your personal assistant.",
     "agent.telegram": "Telegram Agent", "agent.telegram.d": "Create & manage Telegram bots — auto-replies and AI chat support.",
     "agent.website": "Website Agent", "agent.website.d": "Website AI chatbot — visitor support and FAQ answers.",
-    "agent.android": "Android Agent", "agent.android.d": "Help with Android use — automation of approved tasks and mobile control.",
+    "agent.android": "Android Agent", "agent.android.d": "Install it like an app on your phone — launch from the home screen, type by voice, open the bot in one tap.",
     "agent.automation": "Automation Agent", "agent.automation.d": "Scheduled tasks, workflow automation, notifications & reminders.",
     "agent.vpn": "Nova VPN Agent", "agent.vpn.d": "VPN dashboard — WireGuard config and free VPN server management.",
     "guide.1": "Install the <b>Proton app</b> — Settings → Protocol → choose <b>Stealth</b>.",
@@ -124,7 +144,27 @@ const I18N = {
     "auto.th.task": "Task", "auto.th.when": "When", "auto.th.via": "Via", "auto.th.status": "Status",
     "auto.task1": "🌅 Morning reminder (morning dhikr)",
     "auto.task1.when": "Every day 6:00 AM (Dhaka)",
-    "auto.note": "The token and chat ID live in GitHub Secrets — never in the repository. Run it manually anytime from the Actions tab to test."
+    "auto.note": "The token and chat ID live in GitHub Secrets — never in the repository. Run it manually anytime from the Actions tab to test.",
+    "android.title": "📱 Android Agent",
+    "android.sub": "Run it like an app on your phone — install to the home screen, type by voice, open the bot in one tap.",
+    "android.install.title": "Install as an app",
+    "android.install.sub": "Open Nova in one tap from your home screen — the dashboard works offline too (AI chat needs internet).",
+    "android.install.btn": "Install",
+    "android.install.cta": "Install Nova AI as an app",
+    "android.installed": "✅ App installed — open it from the Nova icon on your home screen.",
+    "android.notinstalled": "Not installed yet — tap the button above, or follow the manual steps below.",
+    "android.manual": "Manual install steps",
+    "android.step1": "Open the Nova site in Chrome.",
+    "android.step2": "Tap the ⋮ menu at top right → <b>Install app</b> / <b>Add to Home screen</b>.",
+    "android.step3": "The Nova icon appears on your home screen — tap it to open.",
+    "android.note": "This is not a Play Store app — it is a web app installed from Chrome, completely free, no permissions needed.",
+    "android.open.bot": "💬 Open Telegram Bot",
+    "android.open.chat": "💬 Open AI Chat",
+    "android.share": "🔗 Share Nova",
+    "android.shared": "✅ Shared",
+    "android.share.copied": "✅ Link copied — send it on",
+    "android.voice.listening": "🎙️ Listening... speak",
+    "android.voice.unsupported": "Voice input isn't supported in this browser"
   }
 };
 
@@ -158,6 +198,7 @@ function applyLang() {
   renderAgents();
   renderVpn();
   renderKeyState();
+  renderAndroidStatus();
   updateChatBadge();
   const hello = $("#messages .msg.bot");
   if (hello && !hello.dataset.custom) hello.textContent = t("chat.hello");
@@ -361,6 +402,95 @@ function initSettings() {
   });
 }
 
+/* ---------------- Android agent (Phase 6: PWA) ---------------- */
+let deferredPrompt = null;
+
+function isStandalone() {
+  return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+    (window.navigator && window.navigator.standalone === true);
+}
+
+function renderAndroidStatus() {
+  const el = $("#install-status");
+  if (!el) return;
+  el.textContent = isStandalone() ? t("android.installed") : t("android.notinstalled");
+  const banner = $("#install-banner");
+  if (banner) banner.hidden = isStandalone() || !deferredPrompt;
+}
+
+function registerSW() {
+  if (!("serviceWorker" in navigator)) return;
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+
+function initInstall() {
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    renderAndroidStatus();
+  });
+  window.addEventListener("appinstalled", () => {
+    deferredPrompt = null;
+    renderAndroidStatus();
+  });
+  $$(".install-now").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      if (!deferredPrompt) {
+        const sec = $("#android-sec");
+        if (sec) sec.scrollIntoView({ behavior: "smooth" });
+        return;
+      }
+      deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice.catch(() => null);
+      if (choice && choice.outcome === "accepted") deferredPrompt = null;
+      renderAndroidStatus();
+    });
+  });
+  const dismiss = $("#install-dismiss");
+  if (dismiss) dismiss.addEventListener("click", () => {
+    const banner = $("#install-banner");
+    if (banner) banner.hidden = true;
+  });
+}
+
+function initVoice() {
+  const mic = $("#mic-btn");
+  if (!mic) return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { mic.style.display = "none"; return; }
+  let rec = null;
+  mic.addEventListener("click", () => {
+    if (rec) { try { rec.stop(); } catch (e) {} return; }
+    rec = new SR();
+    rec.lang = (lang === "bn") ? "bn-BD" : "en-US";
+    rec.interimResults = true;
+    rec.maxAlternatives = 1;
+    const input = $("#question");
+    mic.classList.add("listening");
+    mic.textContent = "🔴";
+    rec.onresult = (e) => {
+      let text = "";
+      for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
+      if (input) input.value = text;
+    };
+    rec.onend = () => { rec = null; mic.classList.remove("listening"); mic.textContent = "🎙️"; };
+    rec.onerror = () => { rec = null; mic.classList.remove("listening"); mic.textContent = "🎙️"; };
+    try { rec.start(); } catch (e) { rec = null; mic.classList.remove("listening"); mic.textContent = "🎙️"; }
+  });
+}
+
+function initShare() {
+  const btn = $("#share-btn");
+  if (!btn) return;
+  btn.addEventListener("click", async () => {
+    const data = { title: "Nova AI", text: "Nova AI — All-in-One AI Agent System (Free)", url: location.href };
+    if (navigator.share) {
+      try { await navigator.share(data); return; } catch (e) { if (e && e.name === "AbortError") return; }
+    }
+    copyText(location.href, btn);
+  });
+}
+
 /* ---------------- Header clock ---------------- */
 function tickClock() {
   const el = $("#clock");
@@ -374,7 +504,12 @@ document.addEventListener("DOMContentLoaded", () => {
   applyLang();
   updateHeader();
   initSettings();
+  registerSW();
+  initInstall();
+  initVoice();
+  initShare();
   renderKeyState();
+  renderAndroidStatus();
   tickClock();
   setInterval(tickClock, 30000);
   const sendBtn = $("#send-btn");

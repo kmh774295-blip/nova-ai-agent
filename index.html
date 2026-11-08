@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="description" content="Nova AI — All-in-One AI Agent System. Personal, Telegram, Website, Android, Automation & VPN agents. Free, mobile-first dashboard.">
 <meta name="theme-color" content="#070b16">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Nova AI">
 <title>Nova AI — All-in-One AI Agent System</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%238b5cf6'/%3E%3Cstop offset='1' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23g)'/%3E%3Ctext x='50' y='72' font-size='58' text-anchor='middle' fill='white'%3E✦%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,6 +40,13 @@
 </header>
 
 <main class="wrap" id="top">
+
+  <!-- Install banner (Android agent, Phase 6) -->
+  <div class="install-banner" id="install-banner" hidden>
+    <span>📱 <b data-i18n="android.install.cta">Nova AI অ্যাপ হিসেবে ইনস্টল করো</b></span>
+    <button class="btn install-now" type="button" data-i18n="android.install.btn">ইনস্টল করো</button>
+    <button class="icon-btn" id="install-dismiss" type="button" aria-label="Dismiss">✕</button>
+  </div>
 
   <!-- Hero -->
   <section class="hero" id="dashboard">
@@ -73,6 +85,7 @@
 যেকোনো প্রশ্ন লিখো!</div></div>
       <div class="chat-input">
         <input id="question" type="text" data-i18n-ph="chat.ph" placeholder="এখানে মেসেজ লিখো... (যেমন: ভিপিএন, সময়, এজেন্ট)" autocomplete="off">
+        <button class="icon-btn mic-btn" id="mic-btn" type="button" aria-label="Voice input">🎙️</button>
         <button class="btn" id="send-btn" type="button" data-i18n="chat.send">পাঠাও</button>
       </div>
       <p class="chat-hint" data-i18n="chat.hint">এটি এখন ডেমো চ্যাট — আসল AI সংযোগ আসছে Phase 3-এ। তোমার API Key শুধু এই ব্রাউজারেই থাকবে, কোথাও পাঠানো হবে না।</p>
@@ -127,6 +140,32 @@
       </table>
     </div>
     <p class="small-note" data-i18n="auto.note">টোকেন ও চ্যাট ID GitHub Secrets-এ থাকে — Repository-তে কখনো রাখা হয় না। Actions ট্যাব থেকে যেকোনো সময় হাতে চালিয়ে পরীক্ষা করা যায়।</p>
+  </section>
+
+  <!-- Android -->
+  <section class="block" id="android-sec">
+    <div class="sec-head"><h2 data-i18n="android.title">📱 Android Agent</h2><span class="phase-tag">Phase 6</span></div>
+    <p class="sec-sub" data-i18n="android.sub">ফোনে অ্যাপের মতো চালাও — হোম স্ক্রিনে ইনস্টল, ভয়েসে লিখো, এক ট্যাপে বট খুলো।</p>
+
+    <div class="set-row">
+      <div class="lbl"><b data-i18n="android.install.title">অ্যাপ হিসেবে ইনস্টল করো</b><span data-i18n="android.install.sub">হোম স্ক্রিন থেকে এক ট্যাপে Nova খুলবে — ড্যাশবোর্ড অফলাইনেও দেখা যাবে (AI চ্যাটের জন্য ইন্টারনেট লাগবে)।</span></div>
+      <button class="btn install-now" type="button" data-i18n="android.install.btn">ইনস্টল করো</button>
+    </div>
+    <p class="small-note" id="install-status"></p>
+
+    <div class="android-actions">
+      <a class="btn ghost" href="https://t.me/nova_ai_helper2_bot" target="_blank" rel="noopener" data-i18n="android.open.bot">💬 Telegram বট খুলো</a>
+      <button class="btn ghost" id="share-btn" type="button" data-i18n="android.share">🔗 Nova শেয়ার করো</button>
+      <button class="btn ghost" type="button" onclick="document.getElementById('chat').scrollIntoView({behavior:'smooth'})" data-i18n="android.open.chat">💬 AI চ্যাট খুলো</button>
+    </div>
+
+    <h3 style="font-size:15px;margin:18px 0 8px" data-i18n="android.manual">হাতে ইনস্টল করার ধাপ</h3>
+    <div class="guide">
+      <div data-i18n="android.step1">Chrome-এ Nova সাইট খুলো।</div>
+      <div data-i18n="android.step2">উপরে ডানদিকের ⋮ মেনু চাপো → <b>Install app</b> / <b>Add to Home screen</b> বেছে নাও।</div>
+      <div data-i18n="android.step3">হোম স্ক্রিনে Nova আইকন আসবে — সেখান থেকে এক ট্যাপে খুলবে।</div>
+    </div>
+    <p class="small-note" data-i18n="android.note">এটি Play Store অ্যাপ নয় — Chrome থেকে ইনস্টল করা ওয়েব অ্যাপ, সম্পূর্ণ ফ্রি, কোনো পারমিশন লাগে না।</p>
   </section>
 
   <!-- Settings -->
