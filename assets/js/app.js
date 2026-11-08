@@ -62,7 +62,13 @@ const I18N = {
     "guide.1": "<b>Proton অ্যাপ</b> ইনস্টল করো — Settings → Protocol → <b>Stealth</b> বেছে নাও।",
     "guide.2": "US সার্ভার সিলেক্ট করে <b>Connect</b> চাপো — অ্যাপ নিজেই চালু সার্ভার খুঁজে নেবে।",
     "guide.3": "অথবা <b>OpenVPN for Android</b> অ্যাপে VPN Gate-এর .ovpn ফাইল ইমপোর্ট করো (ইউজারনেম/পাসওয়ার্ড: vpn)।",
-    "guide.4": "কানেক্ট হলে ব্রাউজারে <b>whatismyip.com</b> খুলে IP কোন দেশের দেখাচ্ছে যাচাই করো।"
+    "guide.4": "কানেক্ট হলে ব্রাউজারে <b>whatismyip.com</b> খুলে IP কোন দেশের দেখাচ্ছে যাচাই করো।",
+    "auto.title": "⚙️ Automation Agent",
+    "auto.sub": "সময়মতো স্বয়ংক্রিয় কাজ — GitHub Actions দিয়ে চলে, সম্পূর্ণ ফ্রি।",
+    "auto.th.task": "কাজ", "auto.th.when": "কখন", "auto.th.via": "মাধ্যম", "auto.th.status": "অবস্থা",
+    "auto.task1": "🌅 সকালের রিমাইন্ডার (সকালের জিকির)",
+    "auto.task1.when": "প্রতিদিন সকাল ৬:০০ (ঢাকা)",
+    "auto.note": "টোকেন ও চ্যাট ID GitHub Secrets-এ থাকে — Repository-তে কখনো রাখা হয় না। Actions ট্যাব থেকে যেকোনো সময় হাতে চালিয়ে পরীক্ষা করা যায়।"
   },
   en: {
     "nav.dashboard": "Dashboard", "nav.agents": "Agents", "nav.chat": "Chat",
@@ -112,7 +118,13 @@ const I18N = {
     "guide.1": "Install the <b>Proton app</b> — Settings → Protocol → choose <b>Stealth</b>.",
     "guide.2": "Pick a US server and tap <b>Connect</b> — the app finds a live server itself.",
     "guide.3": "Or import a VPN Gate .ovpn file into <b>OpenVPN for Android</b> (username/password: vpn).",
-    "guide.4": "After connecting, open <b>whatismyip.com</b> in your browser to verify which country your IP shows."
+    "guide.4": "After connecting, open <b>whatismyip.com</b> in your browser to verify which country your IP shows.",
+    "auto.title": "⚙️ Automation Agent",
+    "auto.sub": "Scheduled automatic work — runs on GitHub Actions, completely free.",
+    "auto.th.task": "Task", "auto.th.when": "When", "auto.th.via": "Via", "auto.th.status": "Status",
+    "auto.task1": "🌅 Morning reminder (morning dhikr)",
+    "auto.task1.when": "Every day 6:00 AM (Dhaka)",
+    "auto.note": "The token and chat ID live in GitHub Secrets — never in the repository. Run it manually anytime from the Actions tab to test."
   }
 };
 
