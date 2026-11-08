@@ -16,6 +16,15 @@ async function sendMessage(env, chatId, text) {
   return res.json();
 }
 
+async function sendPhoto(env, chatId, blob, caption) {
+  const fd = new FormData();
+  fd.append("chat_id", String(chatId));
+  fd.append("photo", blob, "nova-image.jpg");
+  fd.append("caption", String(caption).slice(0, 1000));
+  const res = await fetch(`${TELEGRAM_API}/bot${env.TELEGRAM_BOT_TOKEN}/sendPhoto`, { method: "POST", body: fd });
+  return res.json();
+}
+
 async function groqReply(env, text) {
   const res = await fetch(GROQ_API, {
     method: "POST",
@@ -63,7 +72,22 @@ export default {
       let reply;
       if (text === "/start") {
         reply =
-          "আসসালামু আলাইকুম! আমি Nova AI 👋\nআমাকে যেকোনো প্রশ্ন করো — বাংলা বা ইংরেজিতে।";
+          "আসসালামু আলাইকুম! আমি Nova AI 👋\nআমাকে যেকোনো প্রশ্ন করো — বাংলা বা ইংরেজিতে।\nছবি বানাতে লিখো: /image <বর্ণনা> — যেমন: /image a mosque at sunset";
+      } else if (/^(?:\/image|ছবি(?:\s*বানাও)?)\s+/i.test(text)) {
+        // Image generation (Pollinations, free, no key). Bengali prompts
+        // are translated to English via Groq first for better results.
+        let prompt = text.replace(/^(?:\/image|ছবি(?:\s*বানাও)?)\s+/i, "").trim();
+        if (!prompt) {
+          await sendMessage(env, chatId, "কীসের ছবি বানাবো? এভাবে লিখো: /image a mosque at sunset");
+          return new Response("ok", { status: 200 });
+        }
+        if (/[\u0980-\u09FF]/.test(prompt)) {
+          try { prompt = (await groqReply(env, "Translate this image prompt to English. Reply with only the English prompt, nothing else: " + prompt)).trim(); } catch (e) {}
+        }
+        const img = await fetch("https://image.pollinations.ai/prompt/" + encodeURIComponent(prompt) + "?width=1024&height=1024&model=flux&nologo=true");
+        if (!img.ok) throw new Error("Image " + img.status);
+        await sendPhoto(env, chatId, await img.blob(), "🖼️ " + prompt);
+        return new Response("ok", { status: 200 });
       } else {
         reply = await groqReply(env, text);
       }
