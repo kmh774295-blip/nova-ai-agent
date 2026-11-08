@@ -25,6 +25,18 @@ async function sendPhoto(env, chatId, blob, caption) {
   return res.json();
 }
 
+async function englishPrompt(env, text) {
+  // Turn a Bengali (or mixed) image request into a short English prompt
+  // via Groq. Returns null when Groq fails, so the caller can ask the
+  // user for an English prompt instead of generating a random image.
+  try {
+    const out = await groqReply(env, "Extract a short English image-generation prompt from this request. Reply with only the prompt, nothing else: " + text);
+    return out.trim() || null;
+  } catch (e) {
+    return null;
+  }
+}
+
 async function sendImage(env, chatId, prompt) {
   if (!prompt) {
     await sendMessage(env, chatId, "কীসের ছবি বানাবো? এভাবে লিখো: /image a mosque at sunset");
@@ -84,19 +96,26 @@ export default {
         reply =
           "আসসালামু আলাইকুম! আমি Nova AI 👋\nআমাকে যেকোনো প্রশ্ন করো — বাংলা বা ইংরেজিতে।\nছবি বানাতে লিখো: /image <বর্ণনা> — যেমন: /image a mosque at sunset";
       } else if (/^(?:\/image)\s+(.+)/i.test(text)) {
-        // /image <prompt> — prompt used as-is (English works best).
-        const prompt = text.replace(/^(?:\/image)\s+/i, "").trim();
+        // /image <prompt>. Bengali prompts are turned into an English
+        // prompt via Groq first — the image model cannot read Bengali.
+        let prompt = text.replace(/^(?:\/image)\s+/i, "").trim();
+        if (/[\u0980-\u09FF]/.test(prompt)) {
+          prompt = await englishPrompt(env, prompt);
+          if (!prompt) { await sendMessage(env, chatId, "ছবির বর্ণনাটা ইংরেজিতে লিখো — যেমন: /image a mosque at sunset"); return new Response("ok", { status: 200 }); }
+        }
         await sendImage(env, chatId, prompt);
         return new Response("ok", { status: 200 });
-      } else if (/ছবি/.test(text) && /(বানাও|তৈরি|আঁক|দাও|চাই|বানিয়ে)/.test(text)) {
-        // Bengali image request, e.g. "একটা মসজিদের ছবি তৈরি করে দাও" —
-        // Groq extracts a short English prompt from the whole message.
-        const prompt = await groqReply(env, "Extract a short English image-generation prompt from this request. Reply with only the prompt, nothing else: " + text);
-        await sendImage(env, chatId, prompt.trim());
+      } else if (/(ছবি|ইমেজ)/.test(text) && /(বানাও|তৈরি|আঁক|দাও|চাই|বানিয়ে)/.test(text)) {
+        // Bengali image request, e.g. "একটা মসজিদের ছবি তৈরি করে দাও"
+        // or "একটা ইমেজ তৈরি করো" — Groq extracts the English prompt.
+        const prompt = await englishPrompt(env, text);
+        if (!prompt) { await sendMessage(env, chatId, "ছবির বর্ণনাটা ইংরেজিতে লিখো — যেমন: /image a mosque at sunset"); return new Response("ok", { status: 200 }); }
+        await sendImage(env, chatId, prompt);
         return new Response("ok", { status: 200 });
       } else if (/\b(image|picture|photo)\b/i.test(text) && /(generate|make|create|draw|show|give)/i.test(text)) {
-        const prompt = await groqReply(env, "Extract a short English image-generation prompt from this request. Reply with only the prompt, nothing else: " + text);
-        await sendImage(env, chatId, prompt.trim());
+        const prompt = await englishPrompt(env, text);
+        if (!prompt) { await sendMessage(env, chatId, "ছবির বর্ণনাটা ইংরেজিতে লিখো — যেমন: /image a mosque at sunset"); return new Response("ok", { status: 200 }); }
+        await sendImage(env, chatId, prompt);
         return new Response("ok", { status: 200 });
       } else {
         reply = await groqReply(env, text);
