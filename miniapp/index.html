@@ -69,7 +69,7 @@
   .empty { text-align: center; color: var(--hint); padding: 40px 10px; font-size: 15px; line-height: 1.7; }
   .foot { text-align: center; color: var(--hint); font-size: 12px; margin-top: 20px; line-height: 1.7; }
   .foot a { color: var(--btn); text-decoration: none; }
-  /* per-video watch button — opens the video directly, no ad gate */
+  /* per-video watch button — one Monetag rewarded ad first, then the video */
   .watch {
     display: block; width: calc(100% - 20px); margin: 4px 10px 11px; padding: 10px 8px;
     border: none; border-radius: 10px; background: #22a06b; color: #fff;
@@ -100,45 +100,63 @@
   </div>
 
   <div class="foot">
-    কার্ডের ▶️ ভিডিও দেখুন বাটন চাপ দিলে ভিডিওটা বট চ্যাটে পাঠানো হবে।<br>
+    কার্ডের ▶️ ভিডিও দেখুন বাটন চাপ দিলে প্রথমে একটা অ্যাড দেখাবে, তারপর ভিডিওটা বট চ্যাটে পাঠানো হবে।<br>
     বট: <a href="https://t.me/viralvideolinkszone_bot" target="_blank">@viralvideolinkszone_bot</a>
   </div>
 
 <script>
-  // ভিডিও সরাসরি খোলে — কোনো অ্যাড গেট নেই।
-  // অ্যাপ খোলার সময় একবার ইন্টারস্টিশিয়াল অ্যাড: আপাতত শুধু Monetag
-  // (জোন 12332668) — ব্যর্থ হলে চুপচাপ কিছুই হয় না, ভিডিও খুলতে বাধা দেয় না।
-  // TEMPORARILY DISABLED 2026-11-23 19:21: the Adsgram leg is OFF because the
-  // Adsgram SDK itself pops its own blocking "Block int-61492 is not active"
-  // alert when show() is called on a block that is still "In moderation" —
-  // our .catch() cannot suppress the SDK's own alert, so the popup blocked
-  // the user. Re-enable the Adsgram leg ONLY after block int-61492 is
-  // confirmed Active (22:30 tonight check). Monetag is the only app-open
-  // ad until then.
+  // Per-video ad model (user order, 23 Nov ~19:30): tapping a video shows ONE
+  // Monetag rewarded ad first, then the video opens. No app-open ad anymore.
+  // A failed or stalled ad NEVER blocks the video (fail-open + 60s timeout).
+  // Adsgram leg stays DISABLED: block int-61492 is still "In moderation", the
+  // Adsgram SDK pops its own blocking "not active" alert on an inactive block,
+  // and Adsgram's rules do not allow forcing an ad before an action — that is
+  // why Monetag's rewarded format is used for the per-video ad.
+  // --- disabled Adsgram code, kept for reference only; DO NOT re-enable ---
+  // until block int-61492 is confirmed Active.
+  // if (window.Adsgram && ADSGRAM_BLOCK_ID) {
+  //   var ad = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID });
+  //   var p = ad.show();
+  //   if (p && p.then) {
+  //     p.then(function () {}).catch(function () { showMonetagAd(); });
+  //     return;
+  //   }
+  //   if (p && p.catch) { p.catch(function () { showMonetagAd(); }); return; }
+  //   return;
+  // }
   var ADSGRAM_BLOCK_ID = "int-61492";
   var BOT_URL = "https://t.me/viralvideolinkszone_bot";
+  var MONETAG_TIMEOUT_MS = 60000;
 
-  function showAppOpenAd() {
-    // Adsgram disabled for now (see comment above) — Monetag only.
-    // if (window.Adsgram && ADSGRAM_BLOCK_ID) {
-    //   var ad = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID });
-    //   var p = ad.show();
-    //   if (p && p.then) {
-    //     p.then(function () {}).catch(function () { showMonetagAd(); });
-    //     return;
-    //   }
-    //   if (p && p.catch) { p.catch(function () { showMonetagAd(); }); return; }
-    //   return;
-    // }
-    showMonetagAd();
-  }
+  var adShowing = false;
 
-  function showMonetagAd() {
+  // Show ONE Monetag rewarded ad, then open the video. Fail-open: the video
+  // opens anyway if the ad SDK is missing, the promise rejects, or the ad
+  // does not settle within the timeout.
+  function watchVideo(id, btn) {
+    if (adShowing) return;
+    adShowing = true;
+    var done = false;
+    var label = btn ? btn.textContent : "";
+    if (btn) { btn.disabled = true; btn.textContent = "⏳ অ্যাড চলছে..."; }
+    var finish = function () {
+      if (done) return;
+      done = true;
+      adShowing = false;
+      if (btn) { btn.disabled = false; btn.textContent = label || "▶️ ভিডিও দেখুন"; }
+      openBot(id);
+    };
+    var timer = setTimeout(finish, MONETAG_TIMEOUT_MS);
     try {
-      if (typeof window.show_12332668 !== "function") return;
-      var p = window.show_12332668({ type: "start" });
-      if (p && p.catch) p.catch(function () {});
-    } catch (e) {}
+      if (typeof window.show_12332668 !== "function") { clearTimeout(timer); finish(); return; }
+      var p = window.show_12332668();
+      if (p && p.then) {
+        p.then(function () { clearTimeout(timer); finish(); })
+         .catch(function () { clearTimeout(timer); finish(); });
+      } else {
+        clearTimeout(timer); finish();
+      }
+    } catch (e) { clearTimeout(timer); finish(); }
   }
 
   var tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
@@ -223,7 +241,9 @@
         '<div class="meta">' + (v.added_at || "") + '</div>' +
         '<span class="chip">' + escapeHtml(v.category || "") + '</span></div>' +
         '<button class="watch">▶️ ভিডিও দেখুন</button>';
-      card.onclick = function () { openVideo(v.id); };
+      var btn = card.querySelector(".watch");
+      btn.onclick = function (ev) { ev.stopPropagation(); watchVideo(v.id, btn); };
+      card.onclick = function () { watchVideo(v.id, btn); };
       grid.appendChild(card);
     });
   }
@@ -244,16 +264,11 @@
     }
   }
 
-  function openVideo(id) {
-    openBot(id);
-  }
-
   document.getElementById("search").addEventListener("input", function (e) {
     query = e.target.value; render();
   });
   document.getElementById("sort").addEventListener("change", render);
 
-  showAppOpenAd();
   loadVideos();
 </script>
 </body>
