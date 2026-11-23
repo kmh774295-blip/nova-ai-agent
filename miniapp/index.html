@@ -108,6 +108,9 @@
   // Per-video ad model (user order, 23 Nov ~19:30): tapping a video shows ONE
   // Monetag rewarded ad first, then the video opens. No app-open ad anymore.
   // A failed or stalled ad NEVER blocks the video (fail-open + 60s timeout).
+  // PRELOAD (user order, 23 Nov ~20:00): the ad creative is preloaded once
+  // after the list renders and again after each ad settles, so the ad appears
+  // instantly on tap instead of being fetched cold.
   // Adsgram leg stays DISABLED: block int-61492 is still "In moderation", the
   // Adsgram SDK pops its own blocking "not active" alert on an inactive block,
   // and Adsgram's rules do not allow forcing an ad before an action — that is
@@ -130,6 +133,17 @@
 
   var adShowing = false;
 
+  // Preload the Monetag ad creative in the background so it is ready and
+  // appears instantly when a video is tapped. Fire-and-forget, fully silent:
+  // it never blocks, delays, or shows anything by itself.
+  function preloadAd() {
+    try {
+      if (typeof window.show_12332668 !== "function") return;
+      var p = window.show_12332668({ type: "preload" });
+      if (p && p.catch) { p.catch(function () {}); }
+    } catch (e) {}
+  }
+
   // Show ONE Monetag rewarded ad, then open the video. Fail-open: the video
   // opens anyway if the ad SDK is missing, the promise rejects, or the ad
   // does not settle within the timeout.
@@ -144,6 +158,7 @@
       done = true;
       adShowing = false;
       if (btn) { btn.disabled = false; btn.textContent = label || "▶️ ভিডিও দেখুন"; }
+      preloadAd(); // ready the next ad for the next tap
       openBot(id);
     };
     var timer = setTimeout(finish, MONETAG_TIMEOUT_MS);
@@ -180,6 +195,7 @@
         allVideos = d.videos || [];
         buildTabs();
         render();
+        preloadAd(); // creative ready before the first tap
       })
       .catch(function () {
         document.getElementById("empty").style.display = "block";
