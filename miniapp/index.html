@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f0f1a">
+<title>ভাইরাল ভিডিও জোন</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: var(--tg-theme-bg-color, #0f0f1a);
+    --text: var(--tg-theme-text-color, #ffffff);
+    --hint: var(--tg-theme-hint-color, #9a9ab0);
+    --btn: var(--tg-theme-button-color, #e63946);
+    --btn-text: var(--tg-theme-button-text-color, #ffffff);
+    --card: var(--tg-theme-secondary-bg-color, #1c1c2e);
+  }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, "Segoe UI", "Noto Sans Bengali", sans-serif;
+    padding: 12px 12px 24px; min-height: 100vh;
+  }
+  h1 { font-size: 22px; text-align: center; margin: 6px 0 2px; }
+  .sub { text-align: center; color: var(--hint); font-size: 13px; margin-bottom: 12px; }
+  #search {
+    width: 100%; padding: 11px 14px; border-radius: 12px; border: 1px solid #33334d;
+    background: var(--card); color: var(--text); font-size: 15px; outline: none;
+  }
+  #search::placeholder { color: var(--hint); }
+  .tabs { display: flex; gap: 8px; margin: 12px 0; overflow-x: auto; padding-bottom: 2px; }
+  .tab {
+    flex: 0 0 auto; padding: 8px 16px; border-radius: 20px; border: 1px solid #33334d;
+    background: var(--card); color: var(--text); font-size: 14px; cursor: pointer;
+  }
+  .tab.active { background: var(--btn); color: var(--btn-text); border-color: var(--btn); }
+  .row { display: flex; justify-content: space-between; align-items: center; margin: 4px 0 12px; }
+  .count { color: var(--hint); font-size: 13px; }
+  #sort {
+    padding: 7px 10px; border-radius: 10px; border: 1px solid #33334d;
+    background: var(--card); color: var(--text); font-size: 13px; outline: none;
+  }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .card {
+    background: var(--card); border-radius: 14px; overflow: hidden; cursor: pointer;
+    border: 1px solid #2a2a40;
+  }
+  .poster {
+    aspect-ratio: 16 / 10; display: flex; align-items: center; justify-content: center;
+    font-size: 40px; position: relative;
+  }
+  .poster .dur {
+    position: absolute; right: 8px; bottom: 8px; background: rgba(0,0,0,.65);
+    color: #fff; font-size: 11px; padding: 3px 7px; border-radius: 8px;
+  }
+  .card .info { padding: 9px 10px 11px; }
+  .card .title { font-size: 15px; font-weight: 600; }
+  .card .meta { font-size: 12px; color: var(--hint); margin-top: 3px; }
+  .chip {
+    display: inline-block; font-size: 11px; background: var(--btn); color: var(--btn-text);
+    padding: 2px 8px; border-radius: 10px; margin-top: 6px;
+  }
+  .empty { text-align: center; color: var(--hint); padding: 40px 10px; font-size: 15px; line-height: 1.7; }
+  .foot { text-align: center; color: var(--hint); font-size: 12px; margin-top: 20px; line-height: 1.7; }
+  .foot a { color: var(--btn); text-decoration: none; }
+  /* ad gate overlay */
+  #gate {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.92); z-index: 50;
+    flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center;
+  }
+  #gate .big { font-size: 52px; margin-bottom: 12px; }
+  #gate h2 { font-size: 20px; margin-bottom: 8px; }
+  #gate p { color: var(--hint); font-size: 14px; line-height: 1.7; }
+  #gate .timer { font-size: 44px; font-weight: 700; margin: 18px 0 6px; color: var(--btn); }
+  #gate .bar { width: 80%; height: 8px; background: #2a2a40; border-radius: 6px; overflow: hidden; margin-top: 14px; }
+  #gate .bar i { display: block; height: 100%; background: var(--btn); width: 0%; transition: width .3s; }
+</style>
+</head>
+<body>
+  <h1>🔥 ভাইরাল ভিডিও জোন</h1>
+  <div class="sub">সব ভাইরাল ভিডিও এক জায়গায়</div>
+
+  <input id="search" type="search" placeholder="🔍 ভিডিও খুঁজুন (নম্বর / ক্যাটাগরি)...">
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="row">
+    <div class="count" id="count"></div>
+    <select id="sort">
+      <option value="new">🆕 নতুন প্রথম</option>
+      <option value="old">🕐 পুরনো প্রথম</option>
+      <option value="random">🎲 এলোমেলো</option>
+    </select>
+  </div>
+
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" style="display:none">
+    😔 এখনো কোনো ভিডিও যোগ হয়নি।<br>শীঘ্রই ভিডিও আসছে — একটু পরে আবার চেষ্টা করো!
+  </div>
+
+  <div class="foot">
+    কার্ডে চাপ দিলে ভিডিওটা বট চ্যাটে পাঠানো হবে।<br>
+    বট: <a href="https://t.me/viralvideolinkszone_bot" target="_blank">@viralvideolinkszone_bot</a>
+  </div>
+
+  <div id="gate">
+    <div class="big">📺</div>
+    <h2 id="gate-title">অ্যাড চলছে...</h2>
+    <p id="gate-sub">ভিডিও খুলতে ৫টা অ্যাড দেখো</p>
+    <div class="timer" id="gate-timer">15</div>
+    <div class="bar"><i id="gate-bar"></i></div>
+  </div>
+
+<script>
+  // Adsgram block ID বসালে ৫টা অ্যাড × ১৫ সেকেন্ডের গেট চালু হবে।
+  // খালি থাকলে গেট ছাড়াই সরাসরি ভিডিও খুলবে।
+  var ADSGRAM_BLOCK_ID = "";
+  var BOT_URL = "https://t.me/viralvideolinkszone_bot";
+  var ADS_TOTAL = 5, ADS_SECONDS = 15;
+
+  var tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+  if (tg) { try { tg.ready(); tg.expand(); } catch (e) {} }
+
+  var allVideos = [];
+  var activeCat = "সব";
+  var query = "";
+
+  function hueFor(id) { return (id * 47) % 360; }
+
+  function posterStyle(id) {
+    var h1 = hueFor(id), h2 = (h1 + 40) % 360;
+    return "background:linear-gradient(135deg,hsl(" + h1 + ",70%,42%),hsl(" + h2 + ",70%,26%))";
+  }
+
+  function loadVideos() {
+    fetch("videos.json", { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        allVideos = d.videos || [];
+        buildTabs();
+        render();
+      })
+      .catch(function () {
+        document.getElementById("empty").style.display = "block";
+        document.getElementById("empty").innerHTML =
+          "⚠️ ভিডিও লিস্ট লোড হয়নি।<br>অ্যাপটা আবার খুলে চেষ্টা করো।";
+      });
+  }
+
+  function categories() {
+    var cats = ["সব"], seen = {};
+    allVideos.forEach(function (v) {
+      if (v.category && !seen[v.category]) { seen[v.category] = 1; cats.push(v.category); }
+    });
+    return cats;
+  }
+
+  function buildTabs() {
+    var box = document.getElementById("tabs");
+    box.innerHTML = "";
+    categories().forEach(function (c) {
+      var b = document.createElement("button");
+      b.className = "tab" + (c === activeCat ? " active" : "");
+      b.textContent = (c === "সব" ? "📂 " : "") + c;
+      b.onclick = function () { activeCat = c; buildTabs(); render(); };
+      box.appendChild(b);
+    });
+  }
+
+  function filtered() {
+    var q = query.trim().toLowerCase();
+    var list = allVideos.filter(function (v) {
+      if (activeCat !== "সব" && v.category !== activeCat) return false;
+      if (!q) return true;
+      return ("" + v.id).indexOf(q) !== -1 ||
+        (v.category || "").toLowerCase().indexOf(q) !== -1 ||
+        (v.caption || "").toLowerCase().indexOf(q) !== -1;
+    });
+    var sort = document.getElementById("sort").value;
+    if (sort === "old") list.sort(function (a, b) { return a.id - b.id; });
+    else if (sort === "random") list.sort(function () { return Math.random() - 0.5; });
+    else list.sort(function (a, b) { return b.id - a.id; });
+    return list;
+  }
+
+  function render() {
+    var list = filtered();
+    var grid = document.getElementById("grid");
+    grid.innerHTML = "";
+    document.getElementById("count").textContent = "🎬 মোট ভিডিও: " + allVideos.length;
+    document.getElementById("empty").style.display = list.length ? "none" : "block";
+    list.forEach(function (v) {
+      var card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML =
+        '<div class="poster" style="' + posterStyle(v.id) + '">▶️<span class="dur">ভিডিও</span></div>' +
+        '<div class="info"><div class="title">ভিডিও #' + v.id + '</div>' +
+        '<div class="meta">' + (v.added_at || "") + '</div>' +
+        '<span class="chip">' + escapeHtml(v.category || "") + '</span></div>';
+      card.onclick = function () { openVideo(v.id); };
+      grid.appendChild(card);
+    });
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function openBot(id) {
+    var url = BOT_URL + "?start=watch_" + id;
+    if (tg) {
+      try { tg.openTelegramLink(url); } catch (e) { window.open(url, "_blank"); }
+      try { tg.close(); } catch (e) {}
+    } else {
+      window.open(url, "_blank");
+    }
+  }
+
+  function openVideo(id) {
+    if (!ADSGRAM_BLOCK_ID) { openBot(id); return; }
+    runAdGate(id, 1);
+  }
+
+  function runAdGate(id, step) {
+    var gate = document.getElementById("gate");
+    gate.style.display = "flex";
+    document.getElementById("gate-title").textContent = "অ্যাড " + step + "/" + ADS_TOTAL;
+    document.getElementById("gate-sub").textContent = "ভিডিও খুলতে সব অ্যাড দেখো";
+    var left = ADS_SECONDS;
+    var timerEl = document.getElementById("gate-timer");
+    var barEl = document.getElementById("gate-bar");
+    timerEl.textContent = left;
+    barEl.style.width = "0%";
+    var iv = setInterval(function () {
+      left -= 1;
+      timerEl.textContent = Math.max(left, 0);
+      barEl.style.width = ((ADS_SECONDS - Math.max(left, 0)) / ADS_SECONDS * 100) + "%";
+      if (left <= 0) {
+        clearInterval(iv);
+        if (step < ADS_TOTAL) { showAd(id, step + 1); }
+        else { gate.style.display = "none"; openBot(id); }
+      }
+    }, 1000);
+    showAd(id, step);
+  }
+
+  function showAd(id, step) {
+    // Adsgram interstitial — শুধু block ID থাকলেই চলে।
+    try {
+      if (window.Adsgram) {
+        var ad = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID });
+        ad.show().catch(function () {});
+      }
+    } catch (e) {}
+  }
+
+  document.getElementById("search").addEventListener("input", function (e) {
+    query = e.target.value; render();
+  });
+  document.getElementById("sort").addEventListener("change", render);
+
+  loadVideos();
+</script>
+</body>
+</html>
