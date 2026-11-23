@@ -7,6 +7,7 @@
 <title>ভাইরাল ভিডিও জোন</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+<script src='//libtl.com/sdk.js' data-zone='12332668' data-sdk='show_12332668'></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -105,16 +106,32 @@
 
 <script>
   // ভিডিও সরাসরি খোলে — কোনো অ্যাড গেট নেই।
-  // অ্যাপ খোলার সময় একবার ইন্টারস্টিশিয়াল অ্যাড (ব্লক int-61492);
-  // ব্যর্থ হলে চুপচাপ কিছুই হয় না — ভিডিও খুলতে বাধা দেয় না।
+  // অ্যাপ খোলার সময় একবার ইন্টারস্টিশিয়াল অ্যাড: প্রথমে Adsgram
+  // (ব্লক int-61492), ব্যর্থ হলে Monetag (জোন 12332668) —
+  // দুটোই ব্যর্থ হলে চুপচাপ কিছুই হয় না, ভিডিও খুলতে বাধা দেয় না।
   var ADSGRAM_BLOCK_ID = "int-61492";
   var BOT_URL = "https://t.me/viralvideolinkszone_bot";
 
   function showAppOpenAd() {
     try {
-      if (!window.Adsgram || !ADSGRAM_BLOCK_ID) return;
-      var ad = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID });
-      var p = ad.show();
+      if (window.Adsgram && ADSGRAM_BLOCK_ID) {
+        var ad = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID });
+        var p = ad.show();
+        if (p && p.then) {
+          p.then(function () {}).catch(function () { showMonetagAd(); });
+          return;
+        }
+        if (p && p.catch) { p.catch(function () { showMonetagAd(); }); return; }
+        return;
+      }
+    } catch (e) {}
+    showMonetagAd();
+  }
+
+  function showMonetagAd() {
+    try {
+      if (typeof window.show_12332668 !== "function") return;
+      var p = window.show_12332668({ type: "start" });
       if (p && p.catch) p.catch(function () {});
     } catch (e) {}
   }
