@@ -106,25 +106,30 @@
 
 <script>
   // ভিডিও সরাসরি খোলে — কোনো অ্যাড গেট নেই।
-  // অ্যাপ খোলার সময় একবার ইন্টারস্টিশিয়াল অ্যাড: প্রথমে Adsgram
-  // (ব্লক int-61492), ব্যর্থ হলে Monetag (জোন 12332668) —
-  // দুটোই ব্যর্থ হলে চুপচাপ কিছুই হয় না, ভিডিও খুলতে বাধা দেয় না।
+  // অ্যাপ খোলার সময় একবার ইন্টারস্টিশিয়াল অ্যাড: আপাতত শুধু Monetag
+  // (জোন 12332668) — ব্যর্থ হলে চুপচাপ কিছুই হয় না, ভিডিও খুলতে বাধা দেয় না।
+  // TEMPORARILY DISABLED 2026-11-23 19:21: the Adsgram leg is OFF because the
+  // Adsgram SDK itself pops its own blocking "Block int-61492 is not active"
+  // alert when show() is called on a block that is still "In moderation" —
+  // our .catch() cannot suppress the SDK's own alert, so the popup blocked
+  // the user. Re-enable the Adsgram leg ONLY after block int-61492 is
+  // confirmed Active (22:30 tonight check). Monetag is the only app-open
+  // ad until then.
   var ADSGRAM_BLOCK_ID = "int-61492";
   var BOT_URL = "https://t.me/viralvideolinkszone_bot";
 
   function showAppOpenAd() {
-    try {
-      if (window.Adsgram && ADSGRAM_BLOCK_ID) {
-        var ad = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID });
-        var p = ad.show();
-        if (p && p.then) {
-          p.then(function () {}).catch(function () { showMonetagAd(); });
-          return;
-        }
-        if (p && p.catch) { p.catch(function () { showMonetagAd(); }); return; }
-        return;
-      }
-    } catch (e) {}
+    // Adsgram disabled for now (see comment above) — Monetag only.
+    // if (window.Adsgram && ADSGRAM_BLOCK_ID) {
+    //   var ad = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID });
+    //   var p = ad.show();
+    //   if (p && p.then) {
+    //     p.then(function () {}).catch(function () { showMonetagAd(); });
+    //     return;
+    //   }
+    //   if (p && p.catch) { p.catch(function () { showMonetagAd(); }); return; }
+    //   return;
+    // }
     showMonetagAd();
   }
 
