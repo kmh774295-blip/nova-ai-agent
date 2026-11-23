@@ -64,17 +64,23 @@
   .empty { text-align: center; color: var(--hint); padding: 40px 10px; font-size: 15px; line-height: 1.7; }
   .foot { text-align: center; color: var(--hint); font-size: 12px; margin-top: 20px; line-height: 1.7; }
   .foot a { color: var(--btn); text-decoration: none; }
-  /* ad gate overlay */
-  #gate {
-    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.92); z-index: 50;
-    flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center;
+  /* per-video UNLOCK button (ViralEarnZone style) */
+  .unlock {
+    display: block; width: calc(100% - 20px); margin: 4px 10px 11px; padding: 10px 8px;
+    border: none; border-radius: 10px; background: #d63384; color: #fff;
+    font-size: 14px; font-weight: 700; cursor: pointer;
   }
-  #gate .big { font-size: 52px; margin-bottom: 12px; }
-  #gate h2 { font-size: 20px; margin-bottom: 8px; }
-  #gate p { color: var(--hint); font-size: 14px; line-height: 1.7; }
-  #gate .timer { font-size: 44px; font-weight: 700; margin: 18px 0 6px; color: var(--btn); }
-  #gate .bar { width: 80%; height: 8px; background: #2a2a40; border-radius: 6px; overflow: hidden; margin-top: 14px; }
-  #gate .bar i { display: block; height: 100%; background: var(--btn); width: 0%; transition: width .3s; }
+  .unlock.open { background: #22a06b; }
+  .unlock:disabled { background: #3a3a52; color: #9a9ab0; cursor: default; }
+  /* ad error dialog */
+  #err {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 50;
+    align-items: center; justify-content: center; padding: 24px;
+  }
+  #err .box { background: var(--card); border-radius: 16px; padding: 24px 20px; text-align: center; max-width: 340px; }
+  #err h2 { font-size: 18px; margin-bottom: 10px; }
+  #err p { color: var(--hint); font-size: 14px; line-height: 1.7; }
+  #err button { margin-top: 16px; padding: 10px 28px; border: none; border-radius: 10px; background: var(--btn); color: var(--btn-text); font-size: 15px; font-weight: 700; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -100,23 +106,33 @@
   </div>
 
   <div class="foot">
+    🔓 ভিডিও খুলতে কার্ডের UNLOCK বাটন চাপ দাও — ৪টা অ্যাড দেখলেই ভিডিও খুলবে।<br>
     কার্ডে চাপ দিলে ভিডিওটা বট চ্যাটে পাঠানো হবে।<br>
     বট: <a href="https://t.me/viralvideolinkszone_bot" target="_blank">@viralvideolinkszone_bot</a>
   </div>
 
-  <div id="gate">
-    <div class="big">📺</div>
-    <h2 id="gate-title">অ্যাড চলছে...</h2>
-    <p id="gate-sub">ভিডিও খুলতে ৫টা অ্যাড দেখো</p>
-    <div class="timer" id="gate-timer">15</div>
-    <div class="bar"><i id="gate-bar"></i></div>
+  <div id="err">
+    <div class="box">
+      <h2>⚠ ভুল</h2>
+      <p>বিজ্ঞাপন লোড করা যায়নি। AdBlocker থাকলে বন্ধ করে পেজটি রিফ্রেশ করো।</p>
+      <button onclick="document.getElementById('err').style.display='none'">ঠিক আছে</button>
+    </div>
   </div>
 
 <script>
-  // Adsgram block ID বসানো হয়েছে — ৫টা অ্যাড × ১৫ সেকেন্ডের গেট চালু।
+  // প্রতি ভিডিওতে ৪টা অ্যাড — ViralEarnZone-এর মত UNLOCK বাটন।
   var ADSGRAM_BLOCK_ID = "int-61450";
   var BOT_URL = "https://t.me/viralvideolinkszone_bot";
-  var ADS_TOTAL = 5, ADS_SECONDS = 15;
+  var ADS_PER_VIDEO = 4, ADS_SECONDS = 15;
+  var adInProgress = null, adStartedAt = 0, cooldownUntil = {};
+
+  function getProgress(id) {
+    try { return parseInt(localStorage.getItem("vvz_unlock_" + id) || "0", 10) || 0; }
+    catch (e) { return 0; }
+  }
+  function setProgress(id, n) {
+    try { localStorage.setItem("vvz_unlock_" + id, String(n)); } catch (e) {}
+  }
 
   var tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
   if (tg) { try { tg.ready(); tg.expand(); } catch (e) {} }
@@ -192,11 +208,16 @@
     list.forEach(function (v) {
       var card = document.createElement("div");
       card.className = "card";
+      var done = getProgress(v.id);
+      var cool = cooldownUntil[v.id] && Date.now() < cooldownUntil[v.id];
+      var cls = "unlock" + (done >= ADS_PER_VIDEO ? " open" : "");
+      var dis = (adInProgress !== null || cool) ? " disabled" : "";
       card.innerHTML =
         '<div class="poster" style="' + posterStyle(v.id) + '">▶️<span class="dur">ভিডিও</span></div>' +
         '<div class="info"><div class="title">ভিডিও #' + v.id + '</div>' +
         '<div class="meta">' + (v.added_at || "") + '</div>' +
-        '<span class="chip">' + escapeHtml(v.category || "") + '</span></div>';
+        '<span class="chip">' + escapeHtml(v.category || "") + '</span></div>' +
+        '<button id="ub-' + v.id + '" class="' + cls + '"' + dis + '>' + unlockLabel(v.id) + '</button>';
       card.onclick = function () { openVideo(v.id); };
       grid.appendChild(card);
     });
@@ -219,42 +240,63 @@
   }
 
   function openVideo(id) {
-    if (!ADSGRAM_BLOCK_ID) { openBot(id); return; }
-    runAdGate(id, 1);
+    if (getProgress(id) >= ADS_PER_VIDEO) { openBot(id); return; }
+    startAd(id);
   }
 
-  function runAdGate(id, step) {
-    var gate = document.getElementById("gate");
-    gate.style.display = "flex";
-    document.getElementById("gate-title").textContent = "অ্যাড " + step + "/" + ADS_TOTAL;
-    document.getElementById("gate-sub").textContent = "ভিডিও খুলতে সব অ্যাড দেখো";
-    var left = ADS_SECONDS;
-    var timerEl = document.getElementById("gate-timer");
-    var barEl = document.getElementById("gate-bar");
-    timerEl.textContent = left;
-    barEl.style.width = "0%";
-    var iv = setInterval(function () {
-      left -= 1;
-      timerEl.textContent = Math.max(left, 0);
-      barEl.style.width = ((ADS_SECONDS - Math.max(left, 0)) / ADS_SECONDS * 100) + "%";
-      if (left <= 0) {
-        clearInterval(iv);
-        if (step < ADS_TOTAL) { showAd(id, step + 1); }
-        else { gate.style.display = "none"; openBot(id); }
-      }
-    }, 1000);
-    showAd(id, step);
+  function unlockLabel(id) {
+    var done = getProgress(id);
+    if (done >= ADS_PER_VIDEO) return "▶️ ভিডিও দেখুন";
+    if (adInProgress === id) {
+      var left = ADS_SECONDS - Math.floor((Date.now() - adStartedAt) / 1000);
+      return "🔒 অ্যাড দেখা হচ্ছে (" + Math.max(left, 0) + "S)... ⏳";
+    }
+    if (cooldownUntil[id] && Date.now() < cooldownUntil[id]) {
+      return "অপেক্ষা করুন " + Math.ceil((cooldownUntil[id] - Date.now()) / 1000) + "S";
+    }
+    return "UNLOCK — " + done + "/" + ADS_PER_VIDEO + " ADS";
   }
 
-  function showAd(id, step) {
-    // Adsgram interstitial — শুধু block ID থাকলেই চলে।
+  function startAd(id) {
+    if (adInProgress !== null) return;
+    if (!window.Adsgram || !ADSGRAM_BLOCK_ID) { adFailed(id); return; }
+    adInProgress = id; adStartedAt = Date.now();
+    render();
+    var finished = false;
+    function done(ok) {
+      if (finished) return; finished = true;
+      adInProgress = null;
+      if (ok) { setProgress(id, getProgress(id) + 1); render(); }
+      else { adFailed(id); }
+    }
     try {
-      if (window.Adsgram) {
-        var ad = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID });
-        ad.show().catch(function () {});
-      }
-    } catch (e) {}
+      var ad = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID });
+      var p = ad.show();
+      if (p && p.then) { p.then(function () { done(true); }).catch(function () { done(false); }); }
+      else { setTimeout(function () { done(true); }, ADS_SECONDS * 1000); }
+    } catch (e) { done(false); }
   }
+
+  function adFailed(id) {
+    adInProgress = null;
+    cooldownUntil[id] = Date.now() + 15 * 1000;
+    document.getElementById("err").style.display = "flex";
+    render();
+    setTimeout(render, 16 * 1000);
+  }
+
+  // ১ সেকেন্ডে একবার চলমান অ্যাড / কুলডাউনের বাটন লেখা আপডেট করে
+  setInterval(function () {
+    if (adInProgress !== null) {
+      var b = document.getElementById("ub-" + adInProgress);
+      if (b) b.textContent = unlockLabel(adInProgress);
+    }
+    Object.keys(cooldownUntil).forEach(function (k) {
+      if (Date.now() >= cooldownUntil[k]) { delete cooldownUntil[k]; render(); return; }
+      var b2 = document.getElementById("ub-" + k);
+      if (b2) b2.textContent = unlockLabel(parseInt(k, 10));
+    });
+  }, 1000);
 
   document.getElementById("search").addEventListener("input", function (e) {
     query = e.target.value; render();
